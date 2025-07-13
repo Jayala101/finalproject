@@ -51,6 +51,6 @@ jobs:
           npm run build
          
           # Reiniciar PM2 con el nuevo código
-          pm2 stop ecommerce-backend-api || true  # Detener el proceso si está en ejecución
-          pm2 delete ecommerce-backend-api || true  # Eliminar el proceso si ya está activo
-          pm2 start dist/main.js --name ecommerce-backend-api  # Iniciar el proceso desde el archivo compilado
+          pm2 stop nestjs-blog-backend-ecommerece  || true  # Detener el proceso si está en ejecución
+          pm2 delete nestjs-blog-backend-ecommerece  || true  # Eliminar el proceso si ya está activo
+          pm2 start dist/main.js --name nesestjs-blog-backend-ecommerece   # Iniciar el proceso desde el archivo compilado
