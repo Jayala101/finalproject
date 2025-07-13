@@ -12,12 +12,32 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
+    - name: Setup SSH key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.VPS_KEY }}" > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
+        ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+        
+        # Verify the key fingerprint matches what we expect
+        KEY_FINGERPRINT=$(ssh-keygen -lf ~/.ssh/deploy_key | awk '{print $2}')
+        echo "Deploy key fingerprint: $KEY_FINGERPRINT"
+        # Expected: SHA256:O7eRp142ETrg4i2u5Ljc0TW69ETZNt+HNcrz2kUoTD0
+        
+        # Test connection (will help debugging)
+        if [ -n "${{ secrets.VPS_KEY_PASSPHRASE }}" ]; then
+          sshpass -p "${{ secrets.VPS_KEY_PASSPHRASE }}" ssh -v -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "echo Connection successful"
+        else
+          ssh -v -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "echo Connection successful"
+        fi
+
     - name: Copy project to VPS
       uses: appleboy/scp-action@v0.1.3
       with:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USER }}
-        key: ${{ secrets.VPS_KEY }}
+        key_path: ~/.ssh/deploy_key
+        passphrase: ${{ secrets.VPS_KEY_PASSPHRASE }}
         source: "."
         target: "/root/ayala_jimmy/ecommerce-backend"
 
@@ -26,9 +46,10 @@ jobs:
       with:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USER }}
-        key: ${{ secrets.VPS_KEY }}
+        key_path: ~/.ssh/deploy_key
+        passphrase: ${{ secrets.VPS_KEY_PASSPHRASE }}
         script: |
-          cd /root/ayala_jimmy/ecommerce-backend
+          cd /root/ayala_jimmy/finalproject
           # Matar el proceso que está usando el puerto 3030
           echo "Matar proceso en el puerto 3030..."
           sudo lsof -t -i:3030 | xargs sudo kill -9  # Mata el proceso que usa el puerto 3030
@@ -41,8 +62,8 @@ jobs:
           npm run build
          
           # Reiniciar PM2 con el nuevo código
-          pm2 stop ecommerce-backend-api || true  # Detener el proceso si está en ejecución
-          pm2 delete ecommerce-backend-api || true  # Eliminar el proceso si ya está activo
-          pm2 start dist/main.js --name ecommerce-backend-api  # Iniciar el proceso desde el archivo compilado
+          pm2 stop nestjs-blog-backend-ecommerece || true  # Detener el proceso si está en ejecución
+          pm2 delete nestjs-blog-backend-ecommerece || true  # Eliminar el proceso si ya está activo
+          pm2 start dist/main.js --name nestjs-blog-backend-ecommerece  # Iniciar el proceso desde el archivo compilado
 
 
