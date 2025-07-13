@@ -12,6 +12,10 @@ import { OrdersModule } from './orders/orders.module';
 import { CartsModule } from './carts/carts.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { WishlistsModule } from './wishlists/wishlists.module';
+import { ProductContentModule } from './product-content/product-content.module';
+import { UserBehaviorModule } from './user-behavior/user-behavior.module';
+import { SessionDataModule } from './session-data/session-data.module';
+import { NotificationsModule } from './notifications/notifications.module';
 import { SeedModule } from './seed/seed.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -55,6 +59,12 @@ import { CursosModule } from './cursos/cursos.module'; // Re-enabled with MongoD
     // Auth & Communication
     AuthModule,
     MailModule,
+    
+    // MongoDB-based Modules
+    ProductContentModule,
+    UserBehaviorModule,
+    SessionDataModule,
+    NotificationsModule,
     
     // Development & Testing
     SeedModule,
