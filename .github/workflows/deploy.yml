@@ -17,7 +17,10 @@ jobs:
       with:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USER }}
-        password: ${{ secrets.VPS_PASSWORD }}
+        key: ${{ secrets.VPS_KEY }}
+        port: 22
+        timeout: 60s
+        command_timeout: 15m
         source: "."
         target: "/root/ayala_jimmy/finalproject"
 
@@ -26,7 +29,7 @@ jobs:
       with:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USER }}
-        password: ${{ secrets.VPS_PASSWORD }}
+        key: ${{ secrets.VPS_KEY }}
         debug: true
         script: |
           cd /root/ayala_jimmy/finalproject
