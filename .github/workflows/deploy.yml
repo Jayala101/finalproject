@@ -27,6 +27,7 @@ jobs:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USER }}
         password: ${{ secrets.VPS_PASSWORD }}
+        debug: true
         script: |
           cd /root/ayala_jimmy/finalproject
           # Matar el proceso que está usando el puerto 3030
