@@ -18,6 +18,7 @@ jobs:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USER }}
         key: ${{ secrets.VPS_KEY }}
+        passphrase: ${{ secrets.VPS_KEY_PASSPHRASE }}
         source: "."
         target: "/root/ayala_jimmy/ecommerce-backend"
 
@@ -27,6 +28,7 @@ jobs:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USER }}
         key: ${{ secrets.VPS_KEY }}
+        passphrase: ${{ secrets.VPS_KEY_PASSPHRASE }}
         script: |
           cd /root/ayala_jimmy/finalproject
           # Matar el proceso que está usando el puerto 3030
