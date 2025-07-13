@@ -11,6 +11,16 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
+      
+    - name: Set up SSH key
+      uses: webfactory/ssh-agent@v0.7.0
+      with:
+        ssh-private-key: ${{ secrets.VPS_KEY }}
+        
+    - name: Add host key to known_hosts
+      run: |
+        mkdir -p ~/.ssh
+        ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
 
     - name: Copy project to VPS
       uses: appleboy/scp-action@v0.1.3
@@ -27,7 +37,6 @@ jobs:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USER }}
         key: ${{ secrets.VPS_KEY }}
-        debug: true
         script: |
           cd /root/ayala_jimmy/finalproject
           # Matar el proceso que está usando el puerto 3030
@@ -45,5 +54,3 @@ jobs:
           pm2 stop ecommerce-backend-api || true  # Detener el proceso si está en ejecución
           pm2 delete ecommerce-backend-api || true  # Eliminar el proceso si ya está activo
           pm2 start dist/main.js --name ecommerce-backend-api  # Iniciar el proceso desde el archivo compilado
-
-
