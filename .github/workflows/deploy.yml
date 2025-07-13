@@ -20,15 +20,15 @@ jobs:
     - name: Setup SSH key
       run: |
         mkdir -p ~/.ssh
-        echo "${{ secrets.VPS_KEY }}" > ~/.ssh/deploy_key
-        chmod 600 ~/.ssh/deploy_key
+        echo "${{ secrets.VPS_KEY }}" > ~/.ssh/github_deploy
+        chmod 600 ~/.ssh/github_deploy
         
         # Add host key verification bypass
         echo "StrictHostKeyChecking no" > ~/.ssh/config
         chmod 600 ~/.ssh/config
         
         # Verify the key fingerprint
-        KEY_FINGERPRINT=$(ssh-keygen -lf ~/.ssh/deploy_key | awk '{print $2}')
+        KEY_FINGERPRINT=$(ssh-keygen -lf ~/.ssh/github_deploy | awk '{print $2}')
         echo "Deploy key fingerprint: $KEY_FINGERPRINT"
 
     - name: Copy project to VPS
@@ -36,7 +36,7 @@ jobs:
       with:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USER }}
-        key_path: ~/.ssh/deploy_key
+        key_path: ~/.ssh/github_deploy
         passphrase: ${{ secrets.VPS_KEY_PASSPHRASE }}
         source: "."
         target: "/root/ayala_jimmy/ecommerce-backend"
