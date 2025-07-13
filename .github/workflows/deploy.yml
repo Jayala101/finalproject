@@ -18,6 +18,7 @@ jobs:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USER }}
         key: ${{ secrets.VPS_KEY }}
+        password: ${{ secrets.VPS_PASSWORD }}
         passphrase: ${{ secrets.VPS_KEY_PASSPHRASE }}
         source: "."
         target: "/root/ayala_jimmy/finalproject"
@@ -28,6 +29,7 @@ jobs:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USER }}
         key: ${{ secrets.VPS_KEY }}
+        password: ${{ secrets.VPS_PASSWORD }}
         passphrase: ${{ secrets.VPS_KEY_PASSPHRASE }}
         script: |
           cd /root/ayala_jimmy/finalproject
