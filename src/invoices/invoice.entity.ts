@@ -1,15 +1,15 @@
 // invoice.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, JoinTable, ManyToOne } from 'typeorm';
 import { Payment } from './payment.entity';
-import { Customer } from 'src/customers/customer.entity';
+import { User } from '../postgres-modules/users/entities/user.entity';
 
 @Entity('invoices')
 export class Invoice {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Customer, { eager: true })
-  customer: Customer;
+  @ManyToOne(() => User, { eager: true })
+  customer: User;
 
   @Column()
   date: Date;

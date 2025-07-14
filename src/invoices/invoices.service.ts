@@ -10,8 +10,8 @@ import { Invoice } from './invoice.entity';
 import { InvoiceItem } from './invoice-item.entity';
 import { Payment } from './payment.entity';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
-import { Customer } from 'src/customers/customer.entity';
-import { Product } from 'src/products/products.entity';
+import { User } from '../postgres-modules/users/entities/user.entity';
+import { Product } from '../postgres-modules/products/entities/product.entity';
 import { PaymentDto } from './dto/payment.dto';
 
 @Injectable()
@@ -26,8 +26,8 @@ export class InvoicesService {
     @InjectRepository(Payment)
     private paymentsRepository: Repository<Payment>,
 
-    @InjectRepository(Customer)
-    private customersRepository: Repository<Customer>,
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
 
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
@@ -35,7 +35,7 @@ export class InvoicesService {
 
   async create(dto: CreateInvoiceDto): Promise<Invoice | null> {
     try {
-      const customer = await this.customersRepository.findOne({
+      const customer = await this.usersRepository.findOne({
         where: { id: dto.customerId },
       });
       if (!customer) return null;
@@ -64,7 +64,7 @@ export class InvoicesService {
       if (!invoice) return null;
 
       if (dto.customerId) {
-        const customer = await this.customersRepository.findOne({
+        const customer = await this.usersRepository.findOne({
           where: { id: dto.customerId },
         });
         if (!customer) return null;

@@ -6,11 +6,11 @@ import { InvoicesService } from './invoices.service';
 import { Invoice } from './invoice.entity';
 import { InvoiceItem } from './invoice-item.entity';
 import { Payment } from './payment.entity';
-import { Customer } from 'src/customers/customer.entity';
-import { Product } from 'src/products/products.entity';
+import { User } from '../postgres-modules/users/entities/user.entity';
+import { Product } from '../postgres-modules/products/entities/product.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Customer, Invoice, InvoiceItem, Payment, Product])],
+  imports: [TypeOrmModule.forFeature([User, Invoice, InvoiceItem, Payment, Product])],
   controllers: [InvoicesController],
   providers: [InvoicesService],
 })

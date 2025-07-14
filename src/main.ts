@@ -10,17 +10,10 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }));
   app.useGlobalFilters(new GlobalHttpExceptionFilter());
   app.useStaticAssets(join(__dirname, '..', 'public')); // 👈 Habilita acceso público a /public
+  app.enableCors();
   
-  // Enable CORS for frontend connection
-  app.enableCors({
-    origin: ['http://localhost:5173', 'http://localhost:3001', 'https://nestjs-blog-frontend.desarrollo-software.xyz'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-  });
-  
-  const port = process.env.PORT || 3030;
+  const port = process.env.PORT || 3000;
   await app.listen(port);
-  console.log(`🚀 Server running on http://localhost:${port}`);
+  console.log(`🚀 Application is running on: http://localhost:${port}`);
 }
 bootstrap();

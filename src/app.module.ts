@@ -1,79 +1,103 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';  // Importar Mongoose
-import { TypeOrmModule } from '@nestjs/typeorm';  // Importar TypeOrm
-import { ConfigModule } from '@nestjs/config';  // Importar ConfigModule
-import { UsersModule } from './users/users.module';
-import { CategoriesModule } from './categories/categories.module';
-import { PostsModule } from './posts/posts.module';
-import { AuthModule } from './auth/auth.module';
-import { MailModule } from './mail/mail.module';
-import { ProductsModule } from './products/products.module';
-import { OrdersModule } from './orders/orders.module';
-import { CartsModule } from './carts/carts.module';
-import { ReviewsModule } from './reviews/reviews.module';
-import { WishlistsModule } from './wishlists/wishlists.module';
-import { ProductContentModule } from './product-content/product-content.module';
-import { UserBehaviorModule } from './user-behavior/user-behavior.module';
-import { SessionDataModule } from './session-data/session-data.module';
-import { NotificationsModule } from './notifications/notifications.module';
-import { SeedModule } from './seed/seed.module';
+import { MongooseModule } from '@nestjs/mongoose';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule } from '@nestjs/config';
+import * as Joi from 'joi';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { CustomersModule } from './customers/customers.module';
-import { InvoicesModule } from './invoices/invoices.module';
-import { CursosModule } from './cursos/cursos.module'; // Re-enabled with MongoDB
+
+// Core modules
+import { AuthModule } from './core/auth/auth.module';
+import { MailModule } from './core/mail/mail.module';
+
+// PostgreSQL modules
+import { UsersModule } from './postgres-modules/users/users.module';
+import { ProductsModule } from './postgres-modules/products/products.module';
+import { CategoriesModule } from './postgres-modules/categories/categories.module';
+import { OrdersModule } from './postgres-modules/orders/orders.module';
+import { CartsModule } from './postgres-modules/carts/carts.module';
+import { PaymentsModule } from './postgres-modules/payments/payments.module';
+import { ShippingModule } from './postgres-modules/shipping/shipping.module';
+import { DiscountsModule } from './postgres-modules/discounts/discounts.module';
+import { InvoicesModule } from './postgres-modules/invoices/invoices.module';
+import { PostsModule } from './postgres-modules/posts/posts.module';
+
+// MongoDB modules
+import { ProductContentModule } from './mongo-modules/product-content/product-content.module';
+import { UserBehaviorModule } from './mongo-modules/user-behavior/user-behavior.module';
+import { SessionDataModule } from './mongo-modules/session-data/session-data.module';
+import { ReviewsModule } from './mongo-modules/reviews/reviews.module';
+import { AnalyticsModule } from './mongo-modules/analytics/analytics.module';
+import { ContentModule } from './mongo-modules/content/content.module';
+
+// Hybrid Services
+import { HybridServicesModule } from './hybrid-services/hybrid-services.module';
+
+// Database configuration
+import { DatabaseModule } from './database/database.module';
+import { ConfigModule as AppConfigModule } from './config/config.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),  // Cargar variables de entorno
-
-    // Conexión a MongoDB (Mongoose) - For courses and other features
-    MongooseModule.forRoot(process.env.MONGO_URI || 'mongodb://localhost:27017/defaultdb'),
-
-    // Conexión a PostgreSQL (TypeORM) - Primary database for e-commerce
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.DB_HOST,
-      port: parseInt(process.env.DB_PORT || '5432'),
-      username: process.env.DB_USER,
-      password: process.env.DB_PASS,
-      database: process.env.DB_NAME,
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: true, // Re-enabled for new clean database
-      dropSchema: true, // Drop existing schema and recreate
-      ssl: {
-        rejectUnauthorized: false // Required for Neon PostgreSQL
-      },
-      logging: false, // Set to true for debugging
+    // Core configuration - Load .env file globally with validation
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+      cache: true,
+      validationSchema: Joi.object({
+        // Database configuration
+        DB_HOST: Joi.string().required(),
+        DB_PORT: Joi.number().default(5432),
+        DB_USER: Joi.string().required(),
+        DB_PASS: Joi.string().required(),
+        DB_NAME: Joi.string().required(),
+        DB_SSL: Joi.boolean().default(true),
+        
+        // MongoDB configuration
+        MONGO_URI: Joi.string().required(),
+        
+        // JWT configuration
+        JWT_SECRET: Joi.string().required(),
+        JWT_EXPIRES_IN: Joi.string().default('3600s'),
+        
+        // Email configuration
+        MAIL_USER: Joi.string().required(),
+        MAIL_PASS: Joi.string().required(),
+        
+        // Application configuration
+        NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
+        PORT: Joi.number().default(3030),
+      }),
     }),
-
-    // Core E-commerce Modules
-    UsersModule,
-    CategoriesModule,
-    ProductsModule,
-    OrdersModule,
-    CartsModule,
-    ReviewsModule,
-    WishlistsModule,
+    AppConfigModule,
+    DatabaseModule,
     
-    // Auth & Communication
+    // Core modules
     AuthModule,
     MailModule,
     
-    // MongoDB-based Modules
+    // PostgreSQL modules
+    UsersModule,
+    ProductsModule,
+    CategoriesModule,
+    OrdersModule,
+    CartsModule,
+    PaymentsModule,
+    ShippingModule,
+    DiscountsModule,
+    InvoicesModule,
+    PostsModule,
+    
+    // MongoDB modules
     ProductContentModule,
     UserBehaviorModule,
     SessionDataModule,
-    NotificationsModule,
+    ReviewsModule,
+    AnalyticsModule,
+    ContentModule,
     
-    // Development & Testing
-    SeedModule,
-    
-    // Legacy/Additional Modules (PostgreSQL based)
-    CustomersModule,
-    InvoicesModule,
-    PostsModule,
-    CursosModule, // Re-enabled with MongoDB
+    // Hybrid services
+    HybridServicesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
