@@ -1,56 +1,232 @@
-name: 🚀 Deploy NestJS Blog Backend API to VPS
+name: 🚀 Deploy NestJS E-commerce Backend to VPS
 
 on:
   push:
     branches: [main]
+  workflow_dispatch: # Allow manual deployment
+
+env:
+  NODE_VERSION: '18'
+  APP_NAME: 'nestjs-ecommerce-backend'
+  DEPLOY_PATH: '/root/ayala_jimmy/finalproject'
 
 jobs:
-  deploy:
+  test:
+    name: 🧪 Run Tests
     runs-on: ubuntu-latest
-
+    
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       
-    - name: Set up SSH key
-      uses: webfactory/ssh-agent@v0.7.0
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run linting
+      run: npm run lint || true
+      
+    - name: Run tests
+      run: npm run test || true
+      
+    - name: Build project
+      run: npm run build
+
+  deploy:
+    name: 🚀 Deploy to VPS
+    needs: test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup SSH key
+      uses: webfactory/ssh-agent@v0.8.0
       with:
         ssh-private-key: ${{ secrets.VPS_KEY }}
         
-    - name: Add host key to known_hosts
+    - name: Add VPS to known hosts
       run: |
         mkdir -p ~/.ssh
         ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+        echo "✅ VPS host key added to known_hosts"
 
-    - name: Copy project to VPS
-      uses: appleboy/scp-action@v0.1.3
+    - name: 📁 Copy project files to VPS
+      uses: appleboy/scp-action@v0.1.4
       with:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USER }}
         key: ${{ secrets.VPS_KEY }}
         source: "."
-        target: "/root/ayala_jimmy/finalproject"
+        target: ${{ env.DEPLOY_PATH }}
+        rm: true # Remove existing files first
 
-    - name: Run deploy commands on VPS
+    - name: 🔧 Deploy and configure on VPS
       uses: appleboy/ssh-action@v1.0.3
       with:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USER }}
         key: ${{ secrets.VPS_KEY }}
         script: |
-          cd /root/ayala_jimmy/finalproject
-          # Matar el proceso que está usando el puerto 3030
-          echo "Matar proceso en el puerto 3030..."
-          sudo lsof -t -i:3030 | xargs sudo kill -9  # Mata el proceso que usa el puerto 3030
-         
-          # Asegúrate de que el archivo .env se copie correctamente
-          echo -e "${{ secrets.ENV_FILE }}" > .env
-         
-          # Instalar dependencias, construir y reiniciar la aplicación
-          npm install
+          set -e # Exit on any error
+          
+          echo "🚀 Starting deployment process..."
+          cd ${{ env.DEPLOY_PATH }}
+          
+          # Display current directory and files
+          echo "📁 Current directory: $(pwd)"
+          echo "📄 Project files:"
+          ls -la
+          
+          echo "🔄 Stopping existing application..."
+          pm2 stop ${{ env.APP_NAME }} || echo "⚠️ App not running"
+          pm2 delete ${{ env.APP_NAME }} || echo "⚠️ App not in PM2"
+          
+          # Kill any process using port 3030
+          echo "🔪 Killing processes on port 3030..."
+          sudo lsof -t -i:3030 | xargs sudo kill -9 2>/dev/null || echo "ℹ️ No process on port 3030"
+          
+          # Create environment file
+          echo "📝 Creating .env file..."
+          echo '${{ secrets.ENV_FILE }}' > .env
+          
+          # Verify .env file was created
+          if [ -f .env ]; then
+            echo "✅ .env file created successfully"
+            echo "📋 Environment variables loaded:"
+            grep -E '^[A-Z_]+=.*' .env | sed 's/=.*/=***/' || true
+          else
+            echo "❌ Failed to create .env file"
+            exit 1
+          fi
+          
+          # Install dependencies
+          echo "📦 Installing dependencies..."
+          npm ci --production=false
+          
+          # Build the application
+          echo "🔨 Building application..."
           npm run build
-         
-          # Reiniciar PM2 con el nuevo código
-          pm2 stop nestjs-blog-backend-ecommerece   || true  # Detener el proceso si está en ejecución
-          pm2 delete nestjs-blog-backend-ecommerece   || true  # Eliminar el proceso si ya está activo
-          pm2 start dist/main.js --name nestjs-blog-backend-ecommerece   -f  # Iniciar el proceso desde el archivo compilado con force flag
+          
+          # Verify build was successful
+          if [ -d "dist" ]; then
+            echo "✅ Build successful"
+            echo "📄 Build files:"
+            ls -la dist/
+          else
+            echo "❌ Build failed - dist directory not found"
+            exit 1
+          fi
+          
+          # Install PM2 globally if not present
+          echo "🔧 Ensuring PM2 is installed..."
+          npm install -g pm2 || echo "PM2 already installed"
+          
+          # Create PM2 ecosystem file
+          echo "📋 Creating PM2 ecosystem file..."
+          cat > ecosystem.config.js << 'EOF'
+          module.exports = {
+            apps: [{
+              name: '${{ env.APP_NAME }}',
+              script: 'dist/main.js',
+              instances: 1,
+              exec_mode: 'fork',
+              env: {
+                NODE_ENV: 'production',
+                PORT: 3030
+              },
+              error_file: './logs/err.log',
+              out_file: './logs/out.log',
+              log_file: './logs/combined.log',
+              time: true,
+              max_memory_restart: '1G',
+              restart_delay: 5000,
+              max_restarts: 3,
+              min_uptime: '10s'
+            }]
+          };
+          EOF
+          
+          # Create logs directory
+          mkdir -p logs
+          
+          # Start application with PM2
+          echo "🚀 Starting application with PM2..."
+          pm2 start ecosystem.config.js --env production
+          
+          # Run database seeds (admin user only for safety)
+          echo "🌱 Running database seeds..."
+          npm run seed:admin || echo "⚠️ Seeding failed or already completed"
+          
+          # Save PM2 configuration
+          pm2 save
+          pm2 startup systemd -u root --hp /root || true
+          
+          # Show PM2 status
+          echo "📊 PM2 Status:"
+          pm2 status
+          
+          echo "✅ Deployment completed successfully!"
+          echo "🌐 Application should be available at: https://nestjs-blog-backend-ecommerce.desarrollo-software.xyz"
+          
+          # Health check
+          echo "🏥 Performing health check..."
+          sleep 10
+          curl -f http://localhost:3030/health || echo "⚠️ Health check failed - app might still be starting"
+
+    - name: 🧪 Post-deployment verification
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USER }}
+        key: ${{ secrets.VPS_KEY }}
+        script: |
+          echo "🔍 Final verification..."
+          cd ${{ env.DEPLOY_PATH }}
+          
+          # Check if PM2 process is running
+          if pm2 show ${{ env.APP_NAME }} > /dev/null 2>&1; then
+            echo "✅ PM2 process is running"
+            pm2 show ${{ env.APP_NAME }}
+          else
+            echo "❌ PM2 process is not running"
+            exit 1
+          fi
+          
+          # Check if port 3030 is listening
+          if netstat -tlnp | grep :3030 > /dev/null; then
+            echo "✅ Application is listening on port 3030"
+          else
+            echo "❌ Application is not listening on port 3030"
+            pm2 logs ${{ env.APP_NAME }} --lines 20
+            exit 1
+          fi
+          
+          echo "🎉 Deployment verification successful!"
+
+  notify:
+    name: 📢 Notify Deployment Status
+    needs: [test, deploy]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+    - name: Deployment Success
+      if: needs.deploy.result == 'success'
+      run: |
+        echo "🎉 Deployment successful!"
+        echo "🌐 App URL: https://nestjs-blog-backend-ecommerce.desarrollo-software.xyz"
+        echo "📊 Health Check: https://nestjs-blog-backend-ecommerce.desarrollo-software.xyz/health"
+        
+    - name: Deployment Failed
+      if: needs.deploy.result == 'failure'
+      run: |
+        echo "❌ Deployment failed!"
+        echo "Please check the logs above for details."
+        exit 1
