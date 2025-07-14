@@ -5,6 +5,7 @@ import { UpdatePaymentDto } from './dto/update-payment.dto';
 import { Payment, PaymentStatus } from './entities/payment.entity';
 import { JwtAuthGuard } from '../../core/auth/guards/jwt-auth.guard';
 import { Roles } from '../../core/roles/roles.decorator';
+import { Role } from '../../core/roles/role.enum';
 
 @Controller('payments')
 export class PaymentsController {
@@ -18,7 +19,7 @@ export class PaymentsController {
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  @Roles('admin')
+  @Roles(Role.ADMIN)
   async findAll(): Promise<Payment[]> {
     return this.paymentsService.findAll();
   }
@@ -46,7 +47,7 @@ export class PaymentsController {
 
   @Patch(':id/status')
   @UseGuards(JwtAuthGuard)
-  @Roles('admin')
+  @Roles(Role.ADMIN)
   async updateStatus(
     @Param('id') id: string,
     @Body('status') status: PaymentStatus,
@@ -56,7 +57,7 @@ export class PaymentsController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  @Roles('admin')
+  @Roles(Role.ADMIN)
   async remove(@Param('id') id: string): Promise<void> {
     return this.paymentsService.remove(id);
   }

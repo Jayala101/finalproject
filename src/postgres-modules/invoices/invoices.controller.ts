@@ -20,6 +20,7 @@ import { Pagination } from 'nestjs-typeorm-paginate';
 import { SuccessResponseDto } from '../../common/dto/response.dto';
 import { JwtAuthGuard } from '../../core/auth/guards/jwt-auth.guard';
 import { Roles } from '../../core/roles/roles.decorator';
+import { Role } from '../../core/roles/role.enum';
 
 @Controller('invoices')
 export class InvoicesController {
@@ -27,7 +28,7 @@ export class InvoicesController {
 
   @HttpPost()
   @UseGuards(JwtAuthGuard)
-  @Roles('admin')
+  @Roles(Role.ADMIN)
   async create(
     @Body() createInvoiceDto: CreateInvoiceDto
   ): Promise<SuccessResponseDto<Invoice>> {
@@ -58,7 +59,7 @@ export class InvoicesController {
 
   @Put(':id')
   @UseGuards(JwtAuthGuard)
-  @Roles('admin')
+  @Roles(Role.ADMIN)
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateInvoiceDto: UpdateInvoiceDto
@@ -70,7 +71,7 @@ export class InvoicesController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  @Roles('admin')
+  @Roles(Role.ADMIN)
   async remove(@Param('id', ParseUUIDPipe) id: string): Promise<SuccessResponseDto<string>> {
     const deleted = await this.invoicesService.remove(id);
     if (!deleted) throw new NotFoundException('Invoice not found or could not be deleted');

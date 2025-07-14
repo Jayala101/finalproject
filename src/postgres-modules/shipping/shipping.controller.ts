@@ -5,6 +5,7 @@ import { UpdateShippingDto } from './dto/update-shipping.dto';
 import { Shipping, ShippingStatus } from './entities/shipping.entity';
 import { JwtAuthGuard } from '../../core/auth/guards/jwt-auth.guard';
 import { Roles } from '../../core/roles/roles.decorator';
+import { Role } from '../../core/roles/role.enum';
 
 @Controller('shipping')
 export class ShippingController {
@@ -12,14 +13,14 @@ export class ShippingController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  @Roles('admin')
+  @Roles(Role.ADMIN)
   async create(@Body() createShippingDto: CreateShippingDto): Promise<Shipping> {
     return this.shippingService.create(createShippingDto);
   }
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  @Roles('admin')
+  @Roles(Role.ADMIN)
   async findAll(): Promise<Shipping[]> {
     return this.shippingService.findAll();
   }
@@ -38,7 +39,7 @@ export class ShippingController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
-  @Roles('admin')
+  @Roles(Role.ADMIN)
   async update(
     @Param('id') id: string,
     @Body() updateShippingDto: UpdateShippingDto,
@@ -48,7 +49,7 @@ export class ShippingController {
 
   @Patch(':id/status')
   @UseGuards(JwtAuthGuard)
-  @Roles('admin')
+  @Roles(Role.ADMIN)
   async updateStatus(
     @Param('id') id: string,
     @Body('status') status: ShippingStatus,
@@ -58,7 +59,7 @@ export class ShippingController {
 
   @Patch(':id/tracking')
   @UseGuards(JwtAuthGuard)
-  @Roles('admin')
+  @Roles(Role.ADMIN)
   async updateTrackingNumber(
     @Param('id') id: string,
     @Body('trackingNumber') trackingNumber: string,
@@ -68,7 +69,7 @@ export class ShippingController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  @Roles('admin')
+  @Roles(Role.ADMIN)
   async remove(@Param('id') id: string): Promise<void> {
     return this.shippingService.remove(id);
   }

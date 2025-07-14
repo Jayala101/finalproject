@@ -5,6 +5,7 @@ import { UpdateDiscountDto } from './dto/update-discount.dto';
 import { Discount } from './entities/discount.entity';
 import { JwtAuthGuard } from '../../core/auth/guards/jwt-auth.guard';
 import { Roles } from '../../core/roles/roles.decorator';
+import { Role } from '../../core/roles/role.enum';
 
 @Controller('discounts')
 export class DiscountsController {
@@ -12,7 +13,7 @@ export class DiscountsController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  @Roles('admin')
+  @Roles(Role.ADMIN)
   async create(@Body() createDiscountDto: CreateDiscountDto): Promise<Discount> {
     return this.discountsService.create(createDiscountDto);
   }
@@ -47,7 +48,7 @@ export class DiscountsController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
-  @Roles('admin')
+  @Roles(Role.ADMIN)
   async update(
     @Param('id') id: string,
     @Body() updateDiscountDto: UpdateDiscountDto,
@@ -63,7 +64,7 @@ export class DiscountsController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  @Roles('admin')
+  @Roles(Role.ADMIN)
   async remove(@Param('id') id: string): Promise<void> {
     return this.discountsService.remove(id);
   }

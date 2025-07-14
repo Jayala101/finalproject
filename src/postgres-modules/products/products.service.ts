@@ -108,4 +108,36 @@ export class ProductsService {
       order: { createdAt: 'DESC' }
     });
   }
+
+  /**
+   * Update product stock
+   */
+  async updateStock(id: string, stock: number): Promise<Product> {
+    const product = await this.findOne(id);
+    product.stock = stock;
+    return this.productsRepository.save(product);
+  }
+
+  /**
+   * Find products with low stock
+   */
+  async findLowStock(threshold: number = 10): Promise<Product[]> {
+    return this.productsRepository.find({
+      where: {
+        stock: threshold // Note: TypeORM doesn't have direct LessThanOrEqual in find, using queryBuilder below
+      }
+    });
+  }
+
+  /**
+   * Better implementation for low stock using query builder
+   */
+  async findLowStockProducts(threshold: number = 10): Promise<Product[]> {
+    return this.productsRepository
+      .createQueryBuilder('product')
+      .where('product.stock <= :threshold', { threshold })
+      .andWhere('product.isActive = :isActive', { isActive: true })
+      .orderBy('product.stock', 'ASC')
+      .getMany();
+  }
 }

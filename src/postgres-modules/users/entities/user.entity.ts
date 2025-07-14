@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Role } from '../../../core/roles/role.enum';
 
 @Entity('users')
 export class User {
@@ -26,8 +27,12 @@ export class User {
   @Column({ nullable: true })
   profile: string;
 
-  @Column({ type: 'simple-array', nullable: true })
-  roles: string[];
+  @Column({ 
+    type: 'simple-array', 
+    nullable: true,
+    default: () => `'${Role.USER}'`
+  })
+  roles: Role[];
 
   @CreateDateColumn()
   createdAt: Date;

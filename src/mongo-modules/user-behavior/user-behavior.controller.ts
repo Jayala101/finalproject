@@ -3,6 +3,7 @@ import { UserBehaviorService } from './user-behavior.service';
 import { CreateBrowsingHistoryDto, CreateClickstreamDto, CreateSearchQueryDto } from './dto/user-behavior.dto';
 import { JwtAuthGuard } from '../../core/auth/guards/jwt-auth.guard';
 import { Roles } from '../../core/roles/roles.decorator';
+import { Role } from '../../core/roles/role.enum';
 
 @Controller('user-behavior')
 export class UserBehaviorController {
@@ -54,7 +55,7 @@ export class UserBehaviorController {
 
   @Get('stats/:userId')
   @UseGuards(JwtAuthGuard)
-  @Roles('admin')
+  @Roles(Role.ADMIN)
   getUserStats(@Param('userId') userId: string) {
     return this.userBehaviorService.getUserStats(userId);
   }

@@ -4,6 +4,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { JwtAuthGuard } from '../../core/auth/guards/jwt-auth.guard';
 import { Roles } from '../../core/roles/roles.decorator';
+import { Role } from '../../core/roles/role.enum';
 
 @Controller('hybrid/products')
 export class ProductController {
@@ -11,7 +12,7 @@ export class ProductController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  @Roles('admin')
+  @Roles(Role.ADMIN)
   async create(@Body() createProductDto: CreateProductDto) {
     return this.productService.create(createProductDto);
   }
@@ -28,7 +29,7 @@ export class ProductController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
-  @Roles('admin')
+  @Roles(Role.ADMIN)
   async update(
     @Param('id') id: string,
     @Body() updateProductDto: UpdateProductDto,
@@ -38,7 +39,7 @@ export class ProductController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  @Roles('admin')
+  @Roles(Role.ADMIN)
   async remove(@Param('id') id: string) {
     return this.productService.remove(id);
   }

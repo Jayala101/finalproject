@@ -4,6 +4,7 @@ import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { TrackActivityDto } from './dto/track-activity.dto';
 import { JwtAuthGuard } from '../../core/auth/guards/jwt-auth.guard';
 import { Roles } from '../../core/roles/roles.decorator';
+import { Role } from '../../core/roles/role.enum';
 
 @Controller('hybrid/users')
 export class UserController {
@@ -41,7 +42,7 @@ export class UserController {
 
   @Get(':id/stats')
   @UseGuards(JwtAuthGuard)
-  @Roles('admin')
+  @Roles(Role.ADMIN)
   async getUserStats(@Param('id') id: string) {
     return this.userService.getUserStats(id);
   }

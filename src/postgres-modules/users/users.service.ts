@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
+import { Role, DEFAULT_ROLE } from '../../core/roles/role.enum';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -31,7 +32,7 @@ export class UsersService {
     const user = this.usersRepository.create({
       ...createUserDto,
       password: hashedPassword,
-      roles: createUserDto.roles || ['user'],
+      roles: createUserDto.roles || [DEFAULT_ROLE],
     });
 
     return this.usersRepository.save(user);
@@ -74,5 +75,42 @@ export class UsersService {
     if (result.affected === 0) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
+  }
+
+  /**
+   * Create an admin user
+   */
+  async createAdmin(createUserDto: CreateUserDto): Promise<User> {
+    const adminDto = { ...createUserDto, roles: [Role.ADMIN] };
+    return this.create(adminDto);
+  }
+
+  /**
+   * Promote user to admin
+   */
+  async promoteToAdmin(userId: string): Promise<User> {
+    const user = await this.findOne(userId);
+    if (!user.roles.includes(Role.ADMIN)) {
+      user.roles.push(Role.ADMIN);
+    }
+    return this.usersRepository.save(user);
+  }
+
+  /**
+   * Check if user has specific role
+   */
+  async hasRole(userId: string, role: Role): Promise<boolean> {
+    const user = await this.findOne(userId);
+    return user.roles.includes(role);
+  }
+
+  /**
+   * Get all admin users
+   */
+  async findAdmins(): Promise<User[]> {
+    return this.usersRepository
+      .createQueryBuilder('user')
+      .where(':role = ANY(user.roles)', { role: Role.ADMIN })
+      .getMany();
   }
 }
