@@ -37,6 +37,9 @@ import { HybridServicesModule } from './hybrid-services/hybrid-services.module';
 import { DatabaseModule } from './database/database.module';
 import { ConfigModule as AppConfigModule } from './config/config.module';
 
+// Database seeding
+import { SeedModule } from './database/seed/seed.module';
+
 @Module({
   imports: [
     // Core configuration - Load .env file globally with validation
@@ -98,6 +101,9 @@ import { ConfigModule as AppConfigModule } from './config/config.module';
     
     // Hybrid services
     HybridServicesModule,
+    
+    // Database seeding
+    SeedModule,
   ],
   controllers: [AppController],
   providers: [AppService],

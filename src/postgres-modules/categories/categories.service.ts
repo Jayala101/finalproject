@@ -10,6 +10,15 @@ export class CategoriesService {
     private categoryRepository: Repository<Category>,
   ) {}
 
+  async create(categoryData: Partial<Category>): Promise<Category> {
+    const category = this.categoryRepository.create(categoryData);
+    return this.categoryRepository.save(category);
+  }
+
+  async findByName(name: string): Promise<Category | null> {
+    return this.categoryRepository.findOne({ where: { name } });
+  }
+
   async findByIds(ids: string[]): Promise<Category[]> {
     if (!ids || ids.length === 0) {
       return [];
