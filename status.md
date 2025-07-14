@@ -1,0 +1,1 @@
+[![🚀 Deploy NestJS Blog Backend API to VPS](https://github.com/Jayala101/finalproject/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/Jayala101/finalproject/actions/workflows/deploy.yml)

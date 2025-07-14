@@ -38,10 +38,8 @@ jobs:
       run: npm run build
 
   deploy:
-    name: 🚀 Deploy to VPS
-    needs: test
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -113,120 +111,8 @@ jobs:
           # Build the application
           echo "🔨 Building application..."
           npm run build
-          
-          # Verify build was successful
-          if [ -d "dist" ]; then
-            echo "✅ Build successful"
-            echo "📄 Build files:"
-            ls -la dist/
-          else
-            echo "❌ Build failed - dist directory not found"
-            exit 1
-          fi
-          
-          # Install PM2 globally if not present
-          echo "🔧 Ensuring PM2 is installed..."
-          npm install -g pm2 || echo "PM2 already installed"
-          
-          # Create PM2 ecosystem file
-          echo "📋 Creating PM2 ecosystem file..."
-          cat > ecosystem.config.js << 'EOF'
-          module.exports = {
-            apps: [{
-              name: '${{ env.APP_NAME }}',
-              script: 'dist/main.js',
-              instances: 1,
-              exec_mode: 'fork',
-              env: {
-                NODE_ENV: 'production',
-                PORT: 3030
-              },
-              error_file: './logs/err.log',
-              out_file: './logs/out.log',
-              log_file: './logs/combined.log',
-              time: true,
-              max_memory_restart: '1G',
-              restart_delay: 5000,
-              max_restarts: 3,
-              min_uptime: '10s'
-            }]
-          };
-          EOF
-          
-          # Create logs directory
-          mkdir -p logs
-          
-          # Start application with PM2
-          echo "🚀 Starting application with PM2..."
-          pm2 start ecosystem.config.js --env production
-          
-          # Run database seeds (admin user only for safety)
-          echo "🌱 Running database seeds..."
-          npm run seed:admin || echo "⚠️ Seeding failed or already completed"
-          
-          # Save PM2 configuration
-          pm2 save
-          pm2 startup systemd -u root --hp /root || true
-          
-          # Show PM2 status
-          echo "📊 PM2 Status:"
-          pm2 status
-          
-          echo "✅ Deployment completed successfully!"
-          echo "🌐 Application should be available at: https://nestjs-blog-backend-ecommerce.desarrollo-software.xyz"
-          
-          # Health check
-          echo "🏥 Performing health check..."
-          sleep 10
-          curl -f http://localhost:3030/health || echo "⚠️ Health check failed - app might still be starting"
-
-    - name: 🧪 Post-deployment verification
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ secrets.VPS_HOST }}
-        username: ${{ secrets.VPS_USER }}
-        key: ${{ secrets.VPS_KEY }}
-        script: |
-          echo "🔍 Final verification..."
-          cd ${{ env.DEPLOY_PATH }}
-          
-          # Check if PM2 process is running
-          if pm2 show ${{ env.APP_NAME }} > /dev/null 2>&1; then
-            echo "✅ PM2 process is running"
-            pm2 show ${{ env.APP_NAME }}
-          else
-            echo "❌ PM2 process is not running"
-            exit 1
-          fi
-          
-          # Check if port 3030 is listening
-          if netstat -tlnp | grep :3030 > /dev/null; then
-            echo "✅ Application is listening on port 3030"
-          else
-            echo "❌ Application is not listening on port 3030"
-            pm2 logs ${{ env.APP_NAME }} --lines 20
-            exit 1
-          fi
-          
-          echo "🎉 Deployment verification successful!"
-
-  notify:
-    name: 📢 Notify Deployment Status
-    needs: [test, deploy]
-    runs-on: ubuntu-latest
-    if: always()
-    
-    steps:
-    - name: Deployment Success
-      if: needs.deploy.result == 'success'
-      run: |
-        echo "🎉 Deployment successful!"
-        echo "🌐 App URL: https://nestjs-blog-backend-ecommerce.desarrollo-software.xyz"
-        echo "📊 Health Check: https://nestjs-blog-backend-ecommerce.desarrollo-software.xyz/health"
-        
-    - name: Deployment Failed
-      if: needs.deploy.result == 'failure'
-      run: |
-        echo "❌ Deployment failed!"
-        echo "Please check the logs above for details."
-        exit 1
+         
+          # Reiniciar PM2 con el nuevo código
+          pm2 stop nestjs-blog-backend-ecommerece   || true  # Detener el proceso si está en ejecución
+          pm2 delete nestjs-blog-backend-ecommerece   || true  # Eliminar el proceso si ya está activo
+          pm2 start dist/main.js --name nestjs-blog-backend-ecommerece   -f  # Iniciar el proceso desde el archivo compilado con force flag
