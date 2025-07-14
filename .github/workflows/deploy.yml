@@ -38,6 +38,7 @@ jobs:
       run: npm run build
 
   deploy:
+    name: 🚀 Deploy to VPS
     runs-on: ubuntu-latest
 
     steps:
