@@ -16,7 +16,7 @@ describe('AppController', () => {
 
   describe('root', () => {
     it('should return health status', () => {
-      const result = appController.getHeahtlh();
+      const result = appController.getHealth();
       expect(result).toHaveProperty('service');
       expect(result).toHaveProperty('status');
     });
